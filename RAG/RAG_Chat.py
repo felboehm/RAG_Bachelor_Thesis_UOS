@@ -2,10 +2,11 @@ import numpy as np
 from openai import OpenAI
 import sqlite3
 import pandas as pd
+import re
 
 class RAG_Model:
     """
-    Represents a Model capable of using OpenAI GPT models to do Retrieval Augmented Generation
+    Represents a Model capable of using OpenAI GPT models to do Retrieval Augmented Generation on a SQL DB in orded to retrieve Courses from the Universty Osnabrück
 
     Attributes:
         openAIKey (string): The OpenAI API Key which the model will use to gain access to the API
@@ -26,7 +27,56 @@ class RAG_Model:
         self.system_content_generation = system_content_generation
         self.conn = sqlite3.connect(database_path)
         self.model = "gpt-4o-mini"
-        self.context_len = 5
+        self.context_len = 3
+        self.example_content = 0
+
+    def __process_input(self, prompt):
+        """
+        """
+        completion = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role":"system", "content":"It is your Task to make the decision, if the latest prompt is a request that based on the context should be turned into a query, or something different. Consider the given database structure. If somebody asks you for more information on something already in the conversation history, it is not likely to be a query request. If you are asked to find something it is likely a Query request. However, if there are no courses related to the topic that is asked about we need to query. It is a binary decision, so only a query or not a query. If you deem it to be a something which requires a query return the message 'Query', else return 'Proceed'"},
+                    {"role":"assistant", "content": self.database_structure},
+                    *prompt
+                    ]
+                )
+        print(completion.choices[0].message.content)
+        return completion.choices[0].message.content
+
+    def __summarize(self, prompt):
+        """
+        """
+        completion = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role":"system", "content": "It is your task to summarize the messages given to you, so that it is easily possible to create a SQL Query out of the information for the given Database structure. Try to mostly use 'WHERE module' as part of your query, unless specified otherwise"},
+                    {"role":"assistant", "content": self.database_structure},
+                    *prompt
+                    ],
+                temperature=0
+                )
+
+            
+        print(completion.choices[0].message.content)
+        return completion.choices[0].message.content
+
+    def __pick_context(self, prompt):
+        """
+        """
+
+        completion = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role":"system", "content": "It is your task to summarize the messages given to you, so that it is easily possible to create a SQL Query out of the information for the given Database structure."},
+                   # {"role":"assistant", "content": self.example_content_retrieval},
+                    {"role":"assistant", "content": self.database_structure},
+                    *prompt
+                    ],
+                temperature=0
+                )
+        print(completion.choices[0].message.content)
+        return completion.choices[0].message.content
 
     def __retrieval(self, prompt):
         """
@@ -38,19 +88,30 @@ class RAG_Model:
         Returns:
             string: The SQL query to be used for retrieval
         """
+       # summarization = self.__summarize(prompt)
+       # context = self.__pick_context(prompt)
         completion = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
                     {"role":"system", "content": self.system_content_retrieval},
                     {"role":"assistant", "content": self.example_content_retrieval},
                     {"role":"assistant", "content": self.database_structure},
-                    *prompt
+                   # *prompt
+                   # {"role":"assistant", "content": summarization},
+                    prompt
+                   # {"role":"assistant","content": context}
                     ],
                 temperature=0
                 #top_p=0.2
                 )
-        print(completion.choices[0].message.content)
-        return completion.choices[0].message.content
+        ans_string = completion.choices[0].message.content
+        print(ans_string)
+        stripped_str = re.sub(r";(?![^;]*$)", "UNION ", ans_string)
+        #stripped_str = stripped_str + ";"
+        return stripped_str
+
+        #print(completion.choices[0].message.content)
+        #return completion.choices[0].message.content
 
 
     def __exemplify(self, series):
@@ -94,7 +155,7 @@ class RAG_Model:
             example_content_list.append(self.__exemplify(example_df.loc[i]))
         return "\n".join(example_content_list)
     
-    def __generation(self, example_content_exemplified, prompt):
+    def __generation(self, prompt, example_content_exemplified="No Example Courses handed over"):
         """
         Generates the output to print out based on prompt and given retrieved content
 
@@ -110,30 +171,14 @@ class RAG_Model:
             model=self.model,
             messages=[
                 {"role": "system", "content": self.system_content_generation},
-                {"role": "assistant", "content": example_content_exemplified},
                 {"role": "assistant", "content": self.database_structure},
+                {"role": "assistant", "content": example_content_exemplified},
                 *prompt
                 ],
           #  stream = True,
-            temperature=0
+            temperature=0.1
             )
         return completion.choices[0].message.content
-
-    def __summarize(self, prompt)
-    """
-
-    """
-
-    completion = self.client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": "It is your job to summarize the previous messages, which you will be given. Try to summarize such that a SQL Query can easily be generated out of it."},
-               # {"role": "assistant", "content": ""},
-                {"role": "assistant", "content": self.database_structure},
-                *prompt
-                ]
-            )
-    return completion.choices[0].message.content
     
     def RAG(self, prompt):
         """
@@ -151,11 +196,39 @@ class RAG_Model:
         if len(list_prompt) <= 0:
             return "Hello, how can I help you?"
         elif len(list_prompt) < self.context_len:
-            context_window = (1, len(list_prompt)-1)
-            df = pd.read_sql_query(self.__retrieval(list_prompt[-2:]), self.conn)
+            context_window = (0, len(list_prompt)-1)
+            decision = self.__process_input(list_prompt[-2:])
+            if decision.lower() == "query":
+                df = pd.read_sql_query(self.__retrieval(list_prompt[-2:]), self.conn)
+                example_content = self.__create_example_list(df)
+                return self.__generation(list_prompt[context_window[0]:context_window[1]], example_content)
+            else:
+                return self.__generation(list_prompt[context_window[0]:context_window[1]])
         else:
             context_window = (-1-self.context_len, -1)
-            df = pd.read_sql_query(self.__retrieval(list_prompt[-2:]), self.conn)
-        example_content = self.__create_example_list(df)
-        return self.__generation(example_content, list_prompt[context_window[0]:context_window[1]])
+            decision = self.__process_input(list_prompt[-2:])
+            if decision.lower() == "query":
+                df = pd.read_sql_query(self.__retrieval(list_prompt[-2:]), self.conn)
+                self.example_content = self.__create_example_list(df)
+                return self.__generation(list_prompt[context_window[0]:context_window[1]], self.example_content)
+            else:
+                return self.__generation(list_prompt[context_window[0]:context_window[1]], self.example_content)   
+       # example_content = self.__create_example_list(df)
+       # print(example_content)
+       # return self.__generation(example_content, list_prompt[context_window[0]:context_window[1]])
 
+    def RAG(self, prompt):
+        """
+        """
+        list_prompt = [{"role": m["role"], "content": m["content"]}for m in prompt]
+        print(len(list_prompt))
+        if len(list_prompt) <= 0:
+            return "Hello, how can I help you?"
+        else:
+            decision = self.__process_input(list_prompt)
+            if decision.lower() == "query": 
+                df = pd.read_sql_query(self.__retrieval(list_prompt[-1]), self.conn)
+                example_content = self.__create_example_list(df)
+                return self.__generation(list_prompt, example_content)
+            else:
+                return self.__generation(list_prompt)

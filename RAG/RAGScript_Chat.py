@@ -11,11 +11,14 @@ if __name__ == "__main__":
     database_path = st.secrets["rag_params"]["database_path"]
 
     # Initialize model
-    model = RAG.RAG_Model(api_key, rag_db_struc, example_content_retrieval, system_content_retr, system_content_gen, database_path)
+    if "model" not in st.session_state:
+       st.session_state.model = RAG.RAG_Model(api_key, rag_db_struc, example_content_retrieval, system_content_retr, system_content_gen, database_path)
+       print("Model initialized")
 
     # Initialize chat history
     if "messages" not in st.session_state:
         st.session_state.messages = []
+        print("Chat initialized")
 
     # Display chat messages from history
     for message in st.session_state.messages:
@@ -31,7 +34,7 @@ if __name__ == "__main__":
     
     # Display assistant response in chat message container
     with st.chat_message("assistant"):
-        response = model.RAG(st.session_state.messages)
+        response = st.session_state.model.RAG(st.session_state.messages)
         st.write(response)
     st.session_state.messages.append({"role": "assistant", "content": response})
 
