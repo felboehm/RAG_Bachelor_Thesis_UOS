@@ -43,7 +43,7 @@ def upload_json_to_drive(file_names):
 
 		media = MediaFileUpload(file_name, mimetype='application/json')
 		
-		file_name = file_name.split('.logs/')[-1]
+		#file_name = file_name.split('.logs/')[-1]
 
 		file_metadata = {
 			'name': file_name,
