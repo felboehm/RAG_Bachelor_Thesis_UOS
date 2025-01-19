@@ -137,7 +137,7 @@ if __name__ == "__main__":
             query_json = pd.DataFrame(cleaned_queries)
             runtime_json = pd.DataFrame(st.session_state.runtime_log)
             timestamp = time.strftime("%d_%m_%Y__%H_%M_%S")
-            st.session_state.path_to_write = f"../.logs/{st.session_state.matricle_number}_{timestamp}"
+            st.session_state.path_to_write = f"./.logs/{st.session_state.matricle_number}_{timestamp}"
             df_json.to_json(st.session_state.path_to_write + "_Log_Messages", orient="records")
             query_json.to_json(st.session_state.path_to_write + "_Log_Query", orient="records")
             runtime_json.to_json(st.session_state.path_to_write + "_Log_Runtime", orient="columns")
