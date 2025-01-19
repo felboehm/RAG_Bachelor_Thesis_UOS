@@ -83,7 +83,7 @@ profile_default/
 ipython_config.py
 
 # Streamlit secrects
-RAG/.streamlit/secrets.toml
+RAG/.streamlit/
 
 # Written down notes
 notes/
