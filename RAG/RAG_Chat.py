@@ -29,7 +29,7 @@ class RAG_Model:
         self.system_content_generation = system_content_generation
         self.conn = sqlite3.connect(database_path)
         self.model = "gpt-4o-mini"
-        self.example_content = 0
+        self.example_content = "No example content has been generated yet"
         self.query_list = []
 
     def __is_valid_sql(self, query):
@@ -102,28 +102,11 @@ class RAG_Model:
 
     def __exemplify(self, series):
         """
-        Turns the contents of a single row of a Pandas dataframe into a concatenated string
-
-        Args:
-            series (series): The series which is to be turned into a string
-
-        Returns:
-            example (string): The values of all series fields concatenated together and joined with the newline character
         """
-
-        titel = series['titel']
-        veranstaltungsnummer = series['veranstaltungsnummer']
-        status = series['status']
-        beschreibung = series['beschreibung']
-        ects = series['ects']
-        sws = series['sws']
-        mode = series['mode']
-        shortmode = series['shortmode']
-        termine = series['termine']
-        dozenten = series['dozenten']
-        kuerzel = series['kuerzel']
-        module = series['module']
-        example = f"Titel:{titel}\n" +  f"veranstaltungsnummer:{veranstaltungsnummer}\n" +  f"status:{status}\n" +  f"beschreibung:{beschreibung}\n" +  f"ects:{ects}\n" + f"sws:{sws}\n" + f"mode:{mode}\n" + f"shortmode:{shortmode}\n" f"termine:{termine}\n" f"dozenten:{dozenten}\n" f"kuerzel:{kuerzel}\n" f"module:{module}\n"
+        example = ""
+        for name in series.index.tolist():
+            value = series[name]
+            example = example + f"{name}:{value}"
         return example
 
     def __create_example_list(self, example_df):
@@ -152,7 +135,6 @@ class RAG_Model:
         Returns:
             string: The answer which the underlying GPT model generated
         """
-
         completion = self.client.chat.completions.create(
             model=self.model,
             messages=[
