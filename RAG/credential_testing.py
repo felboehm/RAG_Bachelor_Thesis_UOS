@@ -4,12 +4,13 @@ from googleapiclient.http import MediaFileUpload
 import os
 import pandas as pd 
 from datetime import datetime
+import streamlit as st
 
 #Authenticate using the service account
 SCOPES = ['https://www.googleapis.com/auth/drive']
-SERVICE_ACCOUNT_FILE = '.streamlit/credentials.json'
+SERVICE_ACCOUNT_DICT = st.secrets["credentials"]
 
-credentials = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+credentials = service_account.Credentials.from_service_account_info(SERVICE_ACCOUNT_DICT, scopes=SCOPES)
 
 drive_service = build('drive', 'v3', credentials=credentials)
 
@@ -56,10 +57,4 @@ def upload_json_to_drive(file_names):
 			fields = 'id, parents, name',
 			supportsAllDrives = True
 			).execute()
-
-if __name__ == "__main__":
-    name = "Test name"
-    value = "Test value"
-
-    upload_file_to_drive("Test.txt", value)
 
