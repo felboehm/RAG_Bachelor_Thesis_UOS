@@ -87,7 +87,7 @@ class RAG_Model:
 
         def contains_select(statement):
             pattern = r'\bSELECT\b'
-            return bool(re.search(pattern, query_string))
+            return bool(re.search(pattern, statement))
 
         course_abbreviations = "Here is a list of common abbreviations for Cognitive Science modules: AI = Artificial Intelligence, NS = Neuroscience, NI = Neuroinformatics, INF = Informatics/Computer Science, MAT = Mathematics, MCS = Methods of Cognitive Science, CL = Computational Linguistics, PHIL = Philosophy, CNP = Cognitive Neuro Psychology. "
        # summarization = self.__summarize(prompt)
