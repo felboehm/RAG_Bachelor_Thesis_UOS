@@ -213,7 +213,7 @@ class RAG_Model:
             #decision = self.__process_input(list_prompt)
             #end_time = time.time()
             decision = "query"
-            times_this_iter.append({"time_for_decision_process": end_time - start_time})
+            #times_this_iter.append({"time_for_decision_process": end_time - start_time})
             if decision.lower() == "query": 
                 start_time = time.time()
                 query = self.__retrieval(list_prompt[-1])

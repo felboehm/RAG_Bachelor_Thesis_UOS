@@ -118,8 +118,8 @@ if __name__ == "__main__":
 
         system_content_gen = "You are given a list of Courses, make sure to include the modules in the output. Make sure you always mention how many courses you are listing, also add a little summary of the courses you are printing at the end. Try to keep the descriptions at a minimum. If multiple dates are passed pick the one with the highest frequency. Try to be as concise as possible, verbosity is needed if additional information was requested. If you are not receiving any info on the ECTS of a course it is a good guess to take sws * 2 for that. THere are special exceptions to it. 'Foundations of Cognitive Science' is only 3 ECTS, 'Introduction to Logical Thinking' is 6 ECTS, 'Introduction to Computer Science' is 9 ECTS, 'Introduction to Mathematics' are either 6 or 9 ECTS depending on if it's either 4 or 6 SWS. Otherwise use the formula 'sws * 2'. If you do not get any courses handed over ask the user to rephrase the request. Offer them some suggestions what they could search for based on the Database structure. Be specific when it comes to this. Tell them about possible columns, but never tell them to search for ECTS. Do not engage with other Topics!"
 
-        database_path = "RAG/Data/AllSemestersCoursesMultiple.db" #THIS IS THE PATH REQUIRED FOR STREAMLIT 
-       # database_path = st.secrets.rag_params.database_path # THIS IS THE PATH REQUIRED FOR LOCALHOST
+        #database_path = "RAG/Data/AllSemestersCoursesMultiple.db" #THIS IS THE PATH REQUIRED FOR STREAMLIT 
+        database_path = st.secrets.rag_params.database_path # THIS IS THE PATH REQUIRED FOR LOCALHOST
 
         # Initialize model
         if "model" not in st.session_state:
