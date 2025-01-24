@@ -208,7 +208,7 @@ class RAG_Model:
 
                 df = pd.read_sql_query(query, self.conn)
                 self.example_content = self.__create_example_list(df)
-
+                print(self.example_content)
                 generated_text = self.__generation(list_prompt, self.example_content)
                 return generated_text, times_this_iter
             else:
