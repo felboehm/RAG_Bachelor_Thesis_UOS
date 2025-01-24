@@ -21,14 +21,17 @@ if __name__ == "__main__":
         st.session_state.load_questionaire = True
 
     if st.session_state.finished_questionaire:
-        st.title("Final Informations")
+        st.title("RAG for Course Search, using Cognitive Science Courses of the University Osnabrück: Final Informations")
         st.markdown("""
-        ### To receive VP-Hours for participating send an E-Mail, with your VP-Document attached to it, to felboehm@uni-osnabrueck.de. **Include your UUID in the body of the mail, as otherwise it can not be matched to your data and you will not receive VP-Hours**
+        ### To receive VP-Hours for participating send an E-Mail, with your VP-Document attached to it, to felboehm@uni-osnabrueck.de! **Include your UUID in the body of the mail, as otherwise it can not be matched to your data and you will not receive VP-Hours**
         """)
         st.write("Your UUID: " + st.session_state.matricle_number)
 
     if st.session_state.finished_logging and st.session_state.load_questionaire:
-        st.title("Questionnaire")
+        st.title("RAG for Course Search, using Cognitive Science Courses of the University Osnabrück: Questionnaire")
+        st.markdown("""
+        ### Fill in the questionnaire. After you filled everything in press the "Finish up Experiment" button to go to the final information page. 
+        """)
         questions = [
                 "Are you a bachelor or master student?",
                 "Which Semester are you in?",
@@ -59,6 +62,9 @@ if __name__ == "__main__":
                 responses[question] = st.text_input(question)
         
         all_filled = all(responses[question] != "" for question in questions)
+        st.markdown("""
+        If the button is still unavailable after you filled everything in, you might have to click outside of the text input.
+        """)
         finish_button = st.button("Finish up Experiment", disabled=not all_filled)
 
         if finish_button:
@@ -72,7 +78,7 @@ if __name__ == "__main__":
 
     # If not logged in ask for password
     if not st.session_state.logged_in:
-        st.title("Log In")
+        st.title("RAG for Course Search, using Cognitive Science Courses of the University Osnabrück: Log In")
         st.markdown("""
         ### All the information displayed by the chat bot is given without any guarantee that this is correct information. The underlying course information was exported on the 10th of January, 2025 and courses may still be subject to change.
                     """)
@@ -99,15 +105,16 @@ if __name__ == "__main__":
         ### How to use: Enter your questions into the chat below and play around with it. 
         ### **Note that all chats are logged, so only enter information you feel comfortable with!**
 
-        ### When you finished interacting with the chatbot press the stop button. It will take you to the next page.
+        ### When you are finished interacting with the chatbot press the stop button. It will take you to the next page.
                     """)
         # Retrieve secrets
         api_key = st.secrets.openAIKey
         rag_db_struc = "The Database consists of 5 Tables, which have two different column schemes. SommerSemester2023 is the first table, WinterSemester2023_24 is the second one and SommerSemester2024 is the third table. Those three have the columns: titel, veranstaltungsnummer, status, beschreibung, ects, sws, mode, shortmode, termine, dozenten, kuerzel, module. There is also WinterSemester2024_25 which is the fourth table and there is SommerSemester2025 which is the final table. These two have the column scheme 'titel, veranstaltungsnummer, status beschreibung sws, termine, dozenten, kuerzel, module'."
         example_content_retrieval = "SELECT * FROM SommerSemester2023 WHERE ects = 8;SELECT * FROM SommerSemester2023 WHERE titel LIKE 'Einführung%';SELECT * FROM SommerSemester2023 WHERE titel LIKE '%Mathe%';SELECT * FROM SommerSemester2023 WHERE status LIKE 'Präsenz%';SELECT * FROM SommerSemester2023 WHERE status LIKE 'Hybrid%';SELECT * FROM SommerSemester2023 WHERE dozenten LIKE '%Thelen';SELECT * FROM SommerSemester2023 WHERE dozenten LIKE '%Bruni';SELECT * FROM SommerSemester2023 WHERE termine LIKE '%Thu%';SELECT * FROM SommerSemester2023 WHERE module LIKE '%CS-BWP-AI%';SELECT * FROM SommerSemester2023 WHERE module LIKE '%CS-BP-AI%';SELECT * FROM SommerSemester2023 WHERE module LIKE '%CS-BP-NI%';SELECT * FROM SommerSemester2023 WHERE module LIKE '%CS-BWP-NI%';SELECT * FROM SommerSemester2023 WHERE module LIKE '%CS-BP-NS%';SELECT * FROM SommerSemester2023 WHERE module LIKE '%CS-BWP-NS%';SELECT * FROM SommerSemester2023 WHERE module LIKE '%AI%'; SELECT * FROM SommerSemester2024 WHERE module LIKE '%Neuroscience%';SELECT * FROM SommerSemester2023 WHERE module LIKE '%AI%' AND module LIKE '%BWP%'"
-        system_content_retr = "It is your Task to generate only a single SQL Query for the underlying Database, without using the \n character. You must assure that you use only a single semicolon and only return a single string in your response. Names of days must be shortened to the three letter standard. We are currently in the WinterSemester2024_25. So most queries have to be for the next semester SommerSemester2025. Try to mostly use 'WHERE module' as part of your Query, unless specified otherwise. Only, and only if you are asked for master courses make sure to include '%MP%' or '%MWP%', if you are creating a query over the modules and to concatenate using AND. Only, and only if you are asked for bachelor courses make sure you include '%BP%' or '%BWP%', if you are creating a query over the modules and to concatenate using AND"
+        system_content_retr = "It is your Task to generate only a single SQL Query for the underlying Database, without using the \n character. You must assure that you use only a single semicolon and only return a single string in your response. Names of days must be shortened to the three letter standard. We are currently in the WinterSemester2024_25. So queries have to be for the next semester SommerSemester2025, unless specified differently. Try to mostly use 'WHERE module' as part of your Query, unless specified otherwise. Do not use 'WHERE ects' as part of a query. Only, and only if you are asked for master courses make sure to include '%MP%' or '%MWP%', if you are creating a query over the modules and to concatenate using AND. Only, and only if you are asked for bachelor courses make sure you include '%BP%' or '%BWP%', if you are creating a query over the modules and to concatenate using AND"
         system_content_gen = "You are given a list of Courses, make sure to include the modules in the output. Make sure you always mention how many courses you are listing, also add a little summary of the courses you are printing at the end. Try to keep the descriptions at a minimum. If multiple dates are passed pick the one with the highest frequency. Try to be as concise as possible, verbosity is needed if additional information was requested. If you are not receiving any info on the ECTS of a course it is a goodguess to take sws * 2 for that. THere are special exceptions to it. 'Foundations of Cognitive Science' is only 3 ECTS, 'Introduction to Logical Thinking' is 6 ECTS, 'Introduction to Computer Science' is 9 ECTS, 'Introduction to Mathematics' are either 6 or 9 ECTS depending on if it's either 4 or 6 SWS. Otherwise use the formula 'sws * 2'"
-        database_path = "RAG/Data/AllSemestersCoursesMultiple.db"
+        database_path = "RAG/Data/AllSemestersCoursesMultiple.db" #THIS IS THE PATH REQUIRED FOR STREAMLIT 
+       # database_path = st.secrets.rag_params.database_path # THIS IS THE PATH REQUIRED FOR LOCALHOST
 
         # Initialize model
         if "model" not in st.session_state:

@@ -33,6 +33,15 @@ class RAG_Model:
         self.query_list = []
 
     def __is_valid_sql(self, query):
+        """
+        Parses a string to check if it is a valid query
+
+        Args:
+            query (string): The query which is to be parsed
+
+        Returns: 
+            boolean: Wether ot not the query is valid
+        """
         try:
             sqlparse.parse(query)
             return True
@@ -42,11 +51,18 @@ class RAG_Model:
 
     def __process_input(self, prompt):
         """
+        Makes a decision on wether the input requires a query or not, based on the context of the conversation.
+
+        Args:
+            prompt (list of strings): A list of input and output strings the model and user have generated, provides context to the model
+
+        Returns:
+            string: The decision in form of a string
         """
         completion = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
-                    {"role":"system", "content":"It is your Task to make the decision, if the latest prompt is a request that based on the context should be turned into a query, or something different. Consider the given database structure. If somebody asks you for more information on something already in the conversation history, it is not likely to be a query request. If you are asked to find something it is likely a Query request. However, if there are no courses related to the topic that is asked about we need to query. It is a binary decision, so only a query or not a query. If you deem it to be a something which requires a query return the message 'Query', else return 'Proceed'"},
+                    {"role":"system", "content":"It is your Task to make the decision, if the latest prompt is a request that based on the context should be turned into a query, or something different. Consider the given database structure. If somebody asks you for more information on something already in the conversation history, it is not likely to be a query request. If you are asked to find something it is likely a Query request. However, if there are no courses related to the topic, that is asked about, you need to return query. It is a binary decision, so only a query or not a query. If you deem it to be a something which requires a query return the message 'Query', else return 'Proceed'"},
                     {"role":"assistant", "content": self.database_structure},
                     *prompt
                     ]
@@ -64,6 +80,11 @@ class RAG_Model:
         Returns:
             string: The SQL query to be used for retrieval
         """
+
+        def check_for_ects(query_string):
+            pattern = r'ects'
+            return bool(re.search(pattern, query_string, re.IGNORECASE))
+        course_abbreviations = "Here is a list of common abbreviations for Cognitive Science modules: AI = Artificial Intelligence, NS = Neuroscience, NI = Neuroinformatics, INF = Informatics/Computer Science, MAT = Mathematics, MCS = Methods of Cognitive Science, CL = Computational Linguistics, PHIL = Philosophy, CNP = Cognitive Neuro Psychology. "
        # summarization = self.__summarize(prompt)
        # context = self.__pick_context(prompt)
         is_valid = False
@@ -74,6 +95,7 @@ class RAG_Model:
                         {"role":"system", "content": self.system_content_retrieval},
                         {"role":"assistant", "content": self.example_content_retrieval},
                         {"role":"assistant", "content": self.database_structure},
+                        {"role":"assistant", "content": course_abbreviations},
                         {"role":"assistant", "content": validity},
                         # *prompt
                         # {"role":"assistant", "content": summarization},
@@ -87,21 +109,29 @@ class RAG_Model:
             #print(ans_string)
             stripped_str = re.sub(r";(?![^;]*$)", "UNION ", ans_string)
             #stripped_str = stripped_str + ";"
-            if self.__is_valid_sql(stripped_str):
+
+            if self.__is_valid_sql(stripped_str) and not check_for_ects(stripped_str):
                 is_valid = True
                 self.query_list.append(stripped_str)
             elif not is_valid and validity != " ":
                 print("Failsafe for SQL Query Generation")
-                self.query_list.append("SELECT * FROM SommerSemester2024")
-                return  "SELECT * FROM SommerSemester2024"
+                self.query_list.append("SELECT * FROM SommerSemester2025")
+                return  "SELECT * FROM SommerSemester2025"
             else:
                 print("Trying again for SQL Query Generation")
-                validity = "This prompt does not work on the current DB structure, try again"
+                validity = stripped_str +  ": This prompt does not work on the current DB structure, try again"
 
         return stripped_str
 
     def __exemplify(self, series):
         """
+        Turns the series into a concatenated string of format "{name}:{value}", for all elements in the series
+
+        Args:
+            series (pandas series): The series, which is to be turned into a string
+
+        Returns:
+            string: The concatenated string
         """
         example = ""
         for name in series.index.tolist():
@@ -117,7 +147,7 @@ class RAG_Model:
             example_df (dataframe): The dataframe which is to be turned into examples
 
         Returns:
-            string: a single string with each element of the list joined by a newline character 
+            string: a single string with each exemplified row of the dataframe joined by a newline character 
         """
         example_content_list = []
         for i in range(len(example_df)):
@@ -152,6 +182,14 @@ class RAG_Model:
 
     def RAG(self, prompt):
         """
+        Runs the RAG process on the passed prompt
+
+        Args:
+            prompt (Union[string, list of strings]): The prompts generated by the user and messages of the model, to give context to the model
+
+        Returns:
+            string: The answer of the model to the passed prompt
+            list of dicts: Dicts of the times it took to execute this function call
         """
         list_prompt = [{"role": m["role"], "content": m["content"]}for m in prompt]
         if len(list_prompt) <= 0:
