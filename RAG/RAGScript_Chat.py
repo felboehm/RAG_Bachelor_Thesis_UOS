@@ -23,7 +23,7 @@ if __name__ == "__main__":
     if st.session_state.finished_questionaire:
         st.title("RAG for Course Search, using Cognitive Science Courses of the University Osnabrück: Final Informations")
         st.markdown("""
-        ### To receive VP-Hours for participating send an E-Mail, with your VP-Document attached to it, to felboehm@uni-osnabrueck.de! **Include your UUID in the body of the mail, as otherwise it can not be matched to your data and you will not receive VP-Hours**
+        ### To receive VP-Hours for participating send an E-Mail, with your VP-Document attached to it, to felboehm@uni-osnabrueck.de! **Include your UUID in the body of the mail, as otherwise it can not be matched to your data and you will not receive VP-Hours. The name of the experiment is "Using LLMs to Facilitate Natural Language Search for Course and Module Search"**
         """)
         st.write("Your UUID: " + st.session_state.matricle_number)
 
