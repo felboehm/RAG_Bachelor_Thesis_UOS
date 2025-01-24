@@ -62,7 +62,7 @@ class RAG_Model:
         completion = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
-                    {"role":"system", "content":"It is your Task to make the decision, if the latest prompt is a request that based on the context should be turned into a query, or something different. Consider the given database structure. If somebody asks you for more information on something already in the conversation history, it is not likely to be a query request. If you are asked to find something it is likely a Query request. However, if there are no courses related to the topic, that is asked about, you need to return query. It is a binary decision, so only a query or not a query. If you deem it to be a something which requires a query return the message 'Query', else return 'Proceed'"},
+                    {"role":"system", "content":"It is your Task to make the decision, if the latest prompt is a request, that based on the context should be turned into a query, or something different. Consider the given database structure. If you are asked to find something it is likely a Query request. However, if there are no courses related to the topic, that is asked about, you need to return query. It is a binary decision, so only a query or not a query. If you deem it to be a something which requires a query return the message 'Query', else return 'Proceed'. You are a model which is supposed to search over a database, which includes courses of the University Osnabrück."},
                     {"role":"assistant", "content": self.database_structure},
                     *prompt
                     ]
