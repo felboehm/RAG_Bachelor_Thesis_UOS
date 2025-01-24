@@ -5,6 +5,7 @@ import pandas as pd
 import re
 import sqlparse
 import time
+from pandas.io.sql import DatabaseError, OperationalError
 
 class RAG_Model:
     """
@@ -158,6 +159,9 @@ class RAG_Model:
         Returns:
             string: a single string with each exemplified row of the dataframe joined by a newline character 
         """
+        if example_df is None:
+            return "Query failed, No Example Courses handed over"
+
         example_content_list = []
         for i in range(len(example_df)):
             example_content_list.append(self.__exemplify(example_df.loc[i]))
@@ -214,8 +218,11 @@ class RAG_Model:
                 query = self.__retrieval(list_prompt[-1])
                 end_time = time.time()
                 times_this_iter.append({"time_to_create_query": end_time - start_time})
-
-                df = pd.read_sql_query(query, self.conn)
+                
+                try:
+                    df = pd.read_sql_query(query, self.conn)
+                except (OperationalError, DatabaseError):
+                    df = None
                 self.example_content = self.__create_example_list(df)
                 generated_text = self.__generation(list_prompt, self.example_content)
                 return generated_text, times_this_iter
