@@ -5,7 +5,7 @@ import pandas as pd
 import re
 import sqlparse
 import time
-from pandas.io.sql import DatabaseError, OperationalError
+from pandas.io.sql import DatabaseError
 
 class RAG_Model:
     """
@@ -221,7 +221,7 @@ class RAG_Model:
                 
                 try:
                     df = pd.read_sql_query(query, self.conn)
-                except (OperationalError, DatabaseError):
+                except DatabaseError:
                     df = None
                 self.example_content = self.__create_example_list(df)
                 generated_text = self.__generation(list_prompt, self.example_content)
