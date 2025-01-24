@@ -88,6 +88,10 @@ class RAG_Model:
         def contains_select(statement):
             pattern = r'\bSELECT\b'
             return bool(re.search(pattern, statement))
+        
+        def contains_where(statement):
+            pattern = r'\bWHERE\b'
+            return bool(re.search(pattern, statement))
 
         course_abbreviations = "Here is a list of common abbreviations for Cognitive Science modules: AI = Artificial Intelligence, NS = Neuroscience, NI = Neuroinformatics, INF = Informatics/Computer Science, MAT = Mathematics, MCS = Methods of Cognitive Science, CL = Computational Linguistics, PHIL = Philosophy, CNP = Cognitive Neuro Psychology. "
        # summarization = self.__summarize(prompt)
@@ -115,7 +119,7 @@ class RAG_Model:
             stripped_str = re.sub(r";(?![^;]*$)", "UNION ", ans_string)
             #stripped_str = stripped_str + ";"
 
-            if self.__is_valid_sql(stripped_str) and not check_for_ects(stripped_str) and contains_select(stripped_str):
+            if self.__is_valid_sql(stripped_str) and not check_for_ects(stripped_str) and contains_select(stripped_str) and contains_where(stripped_str):
                 is_valid = True
                 self.query_list.append(stripped_str)
             elif not is_valid and validity != " ":
