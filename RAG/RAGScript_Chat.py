@@ -83,7 +83,7 @@ if __name__ == "__main__":
         st.markdown("""
         ### All the information displayed by the chat bot is given without any guarantee that this is correct information. The underlying course information was exported on the 10th of January, 2025 and courses may still be subject to change.
                     """)
-        st.session_state.matricle_number = st.text_input("Enter a identifier! It has to be fully numeric and at least 6 characters long.", max_chars=8)
+        st.session_state.matricle_number = st.text_input("Enter a identifier! It has to be at least 6 characters long.", max_chars=8)
         # Handling user input to compare it against stored hash
         if user_pw := st.text_input("Enter the password: ", type="password"):
             # Make MD5 representation of the string and encode it back into a string for checking against hash

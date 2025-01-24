@@ -27,4 +27,4 @@ def process_chat(chat_logs):
     return chat_logs
 
 def check_matricle_number(matricle_number=""):
-    return len(matricle_number) >= 6 and matricle_number.isdigit()
+    return len(matricle_number) >= 6
