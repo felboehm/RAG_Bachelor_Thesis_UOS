@@ -165,7 +165,7 @@ if __name__ == "__main__":
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
         # Accept user input
-        if prompt := st.chat_input("Enter you question here! For Example: Give me courses for the AI module."):
+        if prompt := st.chat_input("Type here! For Example: Give me courses for the AI module."):
             # Add user message to chat history
             st.session_state.messages.append({"role": "user", "content": prompt})
             # Display user message in chat message container
