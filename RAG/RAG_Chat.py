@@ -207,7 +207,7 @@ class RAG_Model:
         """
         list_prompt = [{"role": m["role"], "content": m["content"]}for m in prompt]
         if len(list_prompt) <= 0:
-            return "Hello, how can I help you?", None
+            return "Hello, in this application you can search for courses offered at the University Osnabrück. If you are not sure what to do, why don't you ask me for a list of modules, or instructors. Maybe this could inspire you!", None
         else:
             times_this_iter = []
             #start_time = time.time()
