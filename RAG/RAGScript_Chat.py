@@ -6,6 +6,8 @@ import hashlib
 import time
 import credential_testing
 import subprocess
+from sqlite3 import ProgrammingError
+
 
 if __name__ == "__main__":
     # Retrieve hashed password 
@@ -101,7 +103,7 @@ if __name__ == "__main__":
                 # Rerun to remove old elements
                 st.rerun()
             elif user_pw == pw and not helper_func.check_matricle_number(st.session_state.matricle_number):
-                st.error("Correct Password, but you forgot your unique identifier. Please enter it so that you can receive your VP-hours")
+                st.error("Correct Password, but you forgot a unique identifier. Please enter it so that you can receive your VP-hours")
             else:
                 st.error("Incorrect Password. Please refer to the E-Mail sent to retrieve the password")
     
@@ -147,6 +149,7 @@ if __name__ == "__main__":
 
         # Logic helper for correct RAG call
         if "first_run" not in st.session_state:
+            st.session_state.model_processing = False
             st.session_state.first_run = True
 
         # Write down all that has been happening in this session
@@ -175,7 +178,8 @@ if __name__ == "__main__":
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
         # Accept user input
-        if prompt := st.chat_input("Type here! For Example: Give me courses for the AI module."):
+        if prompt := st.chat_input("Type here! For Example: Give me courses for the AI module.", disabled=st.session_state.model_processing, on_submit=helper_func.disable_callback(st.session_state.model_processing)):
+            st.session_state.model_processing = True
             # Add user message to chat history
             st.session_state.messages.append({"role": "user", "content": prompt})
             # Display user message in chat message container
@@ -184,7 +188,14 @@ if __name__ == "__main__":
         
         # Display assistant response in chat message container
         with st.chat_message("assistant"):
-            response, runtimes = st.session_state.model.RAG(st.session_state.messages)
+            try:
+                response, runtimes = st.session_state.model.RAG(st.session_state.messages)
+            except ProgrammingError as e:
+                st.write(f"You caused an {e}. Most likely you entered input too fast.")
+                st.session_state.model = RAG.RAG_Model(api_key, rag_db_struc, example_content_retrieval, system_content_retr, system_content_gen, database_path)
+                time.sleep(5)
+                st.session_state.model_processing=False
+                st.rerun()
             full_response = ""
             if st.session_state.first_run == True:
                 full_response = response
@@ -196,6 +207,7 @@ if __name__ == "__main__":
                 runtimes.append({"time_to_create_content": time.time() - starttime})
                 st.session_state.runtime_log.append({f"runtimes_for_call_{int(len(st.session_state.messages) / 2)}": runtimes})
             st.session_state.messages.append({"role": "assistant", "content": full_response})
+            st.session_state.model_processing = False
 
                 #  Print the output
                 #st.write(model.RAG(st.text_input("Prompt")))

@@ -28,3 +28,6 @@ def process_chat(chat_logs):
 
 def check_matricle_number(matricle_number=""):
     return len(matricle_number) >= 6
+
+def disable_callback(state_to_change):
+    state_to_change = True
