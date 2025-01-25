@@ -96,6 +96,7 @@ if __name__ == "__main__":
         st.title("RAG for Course Search, using Cognitive Science Courses of the University Osnabrück: Log In")
         st.markdown("""
         ### All the information displayed by the chat bot is given without any guarantee that this is correct information. The underlying course information was exported on the 10th of January, 2025 and courses may still be subject to change.
+        ### Please also note that if you reload the page you will be taken back to this page and all your data is lost.
                     """)
         st.session_state.matricle_number = st.text_input("Enter a identifier! It has to be at least 6 characters long.", max_chars=8)
         # Handling user input to compare it against stored hash
