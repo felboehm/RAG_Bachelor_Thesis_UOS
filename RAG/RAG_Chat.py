@@ -105,14 +105,14 @@ class RAG_Model:
                         {"role":"system", "content": self.system_content_retrieval},
                         {"role":"assistant", "content": self.example_content_retrieval},
                         {"role":"assistant", "content": self.database_structure},
-                        {"role":"assistant", "content": course_abbreviations},
+                        #{"role":"assistant", "content": course_abbreviations},
                         {"role":"assistant", "content": validity},
                         # *prompt
                         # {"role":"assistant", "content": summarization},
                         prompt
                         # {"role":"assistant","content": context}
                         ],
-                    temperature=0
+                    temperature=0.3
                     #top_p=0.2
                     )
             ans_string = completion.choices[0].message.content
@@ -188,7 +188,7 @@ class RAG_Model:
                 *prompt
                 ],
             stream = True,
-            temperature=0.5
+            temperature=0.3
             )
         
         return completion
