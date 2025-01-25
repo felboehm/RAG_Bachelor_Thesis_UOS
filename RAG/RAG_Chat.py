@@ -120,13 +120,14 @@ class RAG_Model:
             stripped_str = re.sub(r";(?![^;]*$)", "UNION ", ans_string)
             #stripped_str = stripped_str + ";"
 
-            if self.__is_valid_sql(stripped_str) and not check_for_ects(stripped_str) and contains_select(stripped_str) and contains_where(stripped_str):
+            if self.__is_valid_sql(stripped_str):
+            #and not check_for_ects(stripped_str) and contains_select(stripped_str) and contains_where(stripped_str):
                 is_valid = True
                 self.query_list.append(stripped_str)
             elif not is_valid and validity != " ":
                 print("Failsafe for SQL Query Generation")
-                self.query_list.append("SELECT * FROM SommerSemester2025")
-                return  "SELECT * FROM SommerSemester2025"
+                self.query_list.append("SELECT * FROM SommerSemester2025;")
+                return  "SELECT * FROM SommerSemester2025;"
             else:
                 print("Trying again for SQL Query Generation")
                 validity = stripped_str +  ": This prompt does not work on the current DB structure, try again"
@@ -187,7 +188,7 @@ class RAG_Model:
                 *prompt
                 ],
             stream = True,
-            temperature=0.1
+            temperature=0.5
             )
         
         return completion
@@ -219,11 +220,12 @@ class RAG_Model:
                 query = self.__retrieval(list_prompt[-1])
                 end_time = time.time()
                 times_this_iter.append({"time_to_create_query": end_time - start_time})
-                
+                print(query)
                 try:
                     df = pd.read_sql_query(query, self.conn)
                 except DatabaseError:
-                    df = None
+                    df = pd.read_sql_query("SELECT * FROM SommerSemester2025;")
+                print(df)
                 self.example_content = self.__create_example_list(df)
                 generated_text = self.__generation(list_prompt, self.example_content)
                 return generated_text, times_this_iter

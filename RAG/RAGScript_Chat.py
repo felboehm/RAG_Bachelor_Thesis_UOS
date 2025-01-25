@@ -41,7 +41,9 @@ if __name__ == "__main__":
                 "Did you notice any discrepancies?",
                 "Do you feel like the bot helped you plan your courses for the next semester?",
                 "Would you use the bot in order to search for courses if it was implemented in StudIP?",
-                "If you could only choose one of the two: StudIP search or RAG search, which one would you choose for course searches and why?"
+                "If you could only choose one of the two: StudIP search or RAG search, which one would you choose for course searches and why?",
+                "Do you have any suggestions for improvement?",
+                "Do you have any complaints?"
                ]
         responses = {}
         for question in questions:
@@ -60,6 +62,10 @@ if __name__ == "__main__":
             elif question == "Would you use the bot in order to search for courses if it was implemented in StudIP?":
                 responses[question] = st.text_input(question)
             elif question == "If you could only choose one of the two: StudIP search or RAG search, which one would you choose for course searches and why?":
+                responses[question] = st.text_input(question)
+            elif question == "Do you have any suggestions for improvement?":
+                responses[question] = st.text_input(question)
+            elif question == "Do you have any complaints?":
                 responses[question] = st.text_input(question)
         
         all_filled = all(responses[question] != "" for question in questions)
@@ -95,7 +101,7 @@ if __name__ == "__main__":
                 # Rerun to remove old elements
                 st.rerun()
             elif user_pw == pw and not helper_func.check_matricle_number(st.session_state.matricle_number):
-                st.error("Correct Password, but you forgot your matriculation number. Please enter it so that you can receive your VP-hours")
+                st.error("Correct Password, but you forgot your unique identifier. Please enter it so that you can receive your VP-hours")
             else:
                 st.error("Incorrect Password. Please refer to the E-Mail sent to retrieve the password")
     
@@ -114,12 +120,16 @@ if __name__ == "__main__":
 
         example_content_retrieval = "SELECT * FROM SommerSemester2023 WHERE ects = 8;SELECT * FROM SommerSemester2023 WHERE titel LIKE 'Einführung%';SELECT * FROM SommerSemester2023 WHERE titel LIKE '%Mathe%';SELECT * FROM SommerSemester2023 WHERE status LIKE 'Präsenz%';SELECT * FROM SommerSemester2023 WHERE status LIKE 'Hybrid%';SELECT * FROM SommerSemester2023 WHERE dozenten LIKE '%Thelen';SELECT * FROM SommerSemester2023 WHERE dozenten LIKE '%Bruni';SELECT * FROM SommerSemester2023 WHERE termine LIKE '%Thu%';SELECT * FROM SommerSemester2023 WHERE module LIKE '%CS-BWP-AI%';SELECT * FROM SommerSemester2023 WHERE module LIKE '%CS-BP-AI%';SELECT * FROM SommerSemester2023 WHERE module LIKE '%CS-BP-NI%';SELECT * FROM SommerSemester2023 WHERE module LIKE '%CS-BWP-NI%';SELECT * FROM SommerSemester2023 WHERE module LIKE '%CS-BP-NS%';SELECT * FROM SommerSemester2023 WHERE module LIKE '%CS-BWP-NS%';SELECT * FROM SommerSemester2023 WHERE module LIKE '%AI%'; SELECT * FROM SommerSemester2024 WHERE module LIKE '%Neuroscience%';SELECT * FROM SommerSemester2023 WHERE module LIKE '%AI%' AND module LIKE '%BWP%'"
 
-        system_content_retr = "It is your Task to generate only a single SQL Query for the underlying Database, without using the \n character. You must assure that you use only a single semicolon and only return a single string in your response. Names of days must be shortened to the three letter standard. We are currently in the WinterSemester2024_25. Abbreviations are SoSe, SS for SommerSemester and WiSe, WS for WinterSemester. So queries have to be for the next semester SommerSemester2025, unless specified differently. You must only generate queries which select from Semester tables which actually exist within the database structure, even when asked for a different Semester! All valid Semester to query are SommerSemester2023, SommerSemester2024, SommerSemester2025, WinterSemester2023_24 and WinterSemester2024_25. Try to mostly use 'WHERE module' as part of your Query, unless specified otherwise. Do not use 'WHERE ects' as part of a query. Only, and only if you are asked for master courses make sure to include '%MP%' or '%MWP%', if you are creating a query over the modules and to concatenate using AND. Only, and only if you are asked for bachelor courses make sure you include '%BP%' or '%BWP%', if you are creating a query over the modules and to concatenate using AND. Do not engage with the topic, only create a SQL Query"
+        system_content_retr_old = "It is your Task to generate only a single SQL Query for the underlying Database, without using the \n character. You must assure that you use only a single semicolon and only return a single string in your response. Names of days must be shortened to the three letter standard. We are currently in the WinterSemester2024_25. Abbreviations are SoSe, SS for SommerSemester and WiSe, WS for WinterSemester. So queries have to be for the next semester SommerSemester2025, unless specified differently. You must only generate queries which select from Semester tables which actually exist within the database structure, even when asked for a different Semester! All valid Semester to query are SommerSemester2023, SommerSemester2024, SommerSemester2025, WinterSemester2023_24 and WinterSemester2024_25. Try to mostly use 'WHERE module' as part of your Query. Do not use 'WHERE ects' as part of a query. Only, and only if you are asked for master courses make sure to include '%MP%' or '%MWP%', if you are creating a query over the modules and to concatenate using AND. Only, and only if you are asked for bachelor courses make sure you include '%BP%' or '%BWP%', if you are creating a query over the modules and to concatenate using AND. Do not engage with the topic, only create a SQL Query"
 
-        system_content_gen = "You are given a list of Courses, make sure to include the modules in the output. Make sure you always mention how many courses you are listing, also add a little summary of the courses you are printing at the end. Try to keep the descriptions at a minimum. If multiple dates are passed pick the one with the highest frequency. Try to be as concise as possible, verbosity is needed if additional information was requested. If you are not receiving any info on the ECTS of a course it is a good guess to take sws * 2 for that. THere are special exceptions to it. 'Foundations of Cognitive Science' is only 3 ECTS, 'Introduction to Logical Thinking' is 6 ECTS, 'Introduction to Computer Science' is 9 ECTS, 'Introduction to Mathematics' are either 6 or 9 ECTS depending on if it's either 4 or 6 SWS. Otherwise use the formula 'sws * 2'. If you do not get any courses handed over ask the user to rephrase the request. Offer them some suggestions what they could search for based on the Database structure. Be specific when it comes to this. Tell them about possible columns, but never tell them to search for ECTS. Do not engage with other Topics!"
+        system_content_retr = "It is your only Task to to generate a single SQL Query for the database structure you are given, without using the \n character. You must assure that you use only a single semicolon and only return a single string in your response. Names of days must be shortened to the three letter standard. We are currently in the WinterSemester2024_25. Abbreviations are SoSe, SS for SommerSemester and WiSe, WS for WinterSemester. So queries have to be for the next semester SommerSemester2025, unless specified differently. You must only generate queries which select from Semester tables which actually exist within the database structure, even when asked for a different Semester! All valid Semester to query are SommerSemester2023, SommerSemester2024, SommerSemester2025, WinterSemester2023_24 and WinterSemester2024_25. Try to mostly use 'WHERE module' as part of your Query. Do not use 'WHERE ects' as part of a query. Do not engage with the topic, only create a SQL Query"
 
-        #database_path = st.secrets.rag_params.database_path # THIS IS THE PATH REQUIRED FOR LOCALHOST
-        database_path = "RAG/Data/AllSemestersCoursesMultiple.db" #THIS IS THE PATH REQUIRED FOR STREAMLIT 
+        system_content_gen_old = "You are given a list of Courses, make sure to include the modules in the output. Make sure you always mention how many courses you are listing, also add a little summary of the courses you are printing at the end. Try to keep the descriptions at a minimum. If multiple dates are passed pick the one with the highest frequency. Try to be as concise as possible, verbosity is needed if additional information was requested. If you are not receiving any info on the ECTS of a course it is a good guess to take sws * 2 for that. THere are special exceptions to it. 'Foundations of Cognitive Science' is only 3 ECTS, 'Introduction to Logical Thinking' is 6 ECTS, 'Introduction to Computer Science' is 9 ECTS, 'Introduction to Mathematics' are either 6 or 9 ECTS depending on if it's either 4 or 6 SWS. Otherwise use the formula 'sws * 2'. If you do not get any courses handed over ask the user to rephrase the request. Offer them some suggestions what they could search for based on the Database structure. Be specific when it comes to this. Tell them about possible columns, but never tell them to search for ECTS. If you are asked for a list of something curate one out of the courses you are given. Do not engage with other Topics, which are not about university!"
+
+        system_content_gen = "You are supposed to be a interface to search for courses in University. You are given a list of courses and instructions on what to do with the list. Do not engage with topics that go to far away from this setting."
+
+        database_path = st.secrets.rag_params.database_path # THIS IS THE PATH REQUIRED FOR LOCALHOST
+        #database_path = "RAG/Data/AllSemestersCoursesMultiple.db" #THIS IS THE PATH REQUIRED FOR STREAMLIT 
 
         # Initialize model
         if "model" not in st.session_state:
@@ -140,7 +150,7 @@ if __name__ == "__main__":
             st.session_state.first_run = True
 
         # Write down all that has been happening in this session
-        if st.button("Stop"):
+        if st.button("Continue with the Experiment. Make sure you are done with the chatbot before pressing."):
             st.write("Logging...")
             cleaned_chat = helper_func.process_chat(st.session_state.messages)
             cleaned_queries = helper_func.process_list(st.session_state.model.query_list)
