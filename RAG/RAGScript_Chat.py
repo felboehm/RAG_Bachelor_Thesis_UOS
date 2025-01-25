@@ -128,8 +128,8 @@ if __name__ == "__main__":
 
         system_content_gen = "You are supposed to be a interface to search for courses in University. You are given a list of courses and instructions on what to do with the list. Do not engage with topics that go to far away from this setting."
 
-        database_path = st.secrets.rag_params.database_path # THIS IS THE PATH REQUIRED FOR LOCALHOST
-        #database_path = "RAG/Data/AllSemestersCoursesMultiple.db" #THIS IS THE PATH REQUIRED FOR STREAMLIT 
+        #database_path = st.secrets.rag_params.database_path # THIS IS THE PATH REQUIRED FOR LOCALHOST
+        database_path = "RAG/Data/AllSemestersCoursesMultiple.db" #THIS IS THE PATH REQUIRED FOR STREAMLIT 
 
         # Initialize model
         if "model" not in st.session_state:
