@@ -52,21 +52,21 @@ if __name__ == "__main__":
             elif question == "Which Semester are you in?":
                 responses[question] = st.number_input(question, min_value=1, max_value=20)
             elif question == "Did the bot respond to your questions so that you were satisfied by the answers?":
-                responses[question] = st.text_area(question)
+                responses[question] = st.text_area(question, height=102)
             elif question == "Did the bot respond to your questions in a fitting manner?":
-                responses[question] = st.text_area(question)
+                responses[question] = st.text_area(question, height=102)
             elif question == "Did you notice any discrepancies?":
-                responses[question] = st.text_area(question)
+                responses[question] = st.text_area(question, height=102)
             elif question == "Do you feel like the bot helped you plan your courses for the next semester?":
-                responses[question] = st.text_area(question)
+                responses[question] = st.text_area(question, height=102)
             elif question == "Would you use the bot in order to search for courses if it was implemented in StudIP?":
-                responses[question] = st.text_area(question)
+                responses[question] = st.text_area(question, height=102)
             elif question == "If you could only choose one of the two: StudIP search or RAG search, which one would you choose for course searches and why?":
-                responses[question] = st.text_area(question)
+                responses[question] = st.text_area(question, height=102)
             elif question == "Do you have any suggestions for improvement?":
-                responses[question] = st.text_area(question)
+                responses[question] = st.text_area(question, height=102)
             elif question == "Do you have any complaints?":
-                responses[question] = st.text_area(question)
+                responses[question] = st.text_area(question, height=102)
         
         all_filled = all(responses[question] != "" for question in questions)
         st.markdown("""
